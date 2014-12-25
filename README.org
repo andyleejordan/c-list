@@ -10,6 +10,10 @@ C. It uses a
 node]] to avoid every edge case one usually encounters when writing a
 linked list.
 
+This library was originally created for use in my
+[[https://github.com/andschwa/uidaho-cs445][120++ Compiler]], and has
+been updated since.
+
 * Peformance
 It is highly performant, and allows the user to allocate nodes as they
 wish. Since it is doubly linked, both ends can be accessed
@@ -17,8 +21,6 @@ wish. Since it is doubly linked, both ends can be accessed
 time. Insertions and deletions are obviously in linear time, but the
 list is smart enough to traverse from the closest end, leading to
 worst case time of =n/2=.
-
-** TODO Benchmarks
 
 * Interface
 The list can be iterated over in a sugary syntactic fashion:
