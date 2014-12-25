@@ -28,12 +28,11 @@ struct list
 {
 	struct list_node *sentinel;
 	size_t size;
-	bool (*compare)(void *a, void *b);
-	void (*delete)(void *data);
+	bool (*compare)(void *, void *);
+	void (*delete)(void *);
 };
 
-struct list *list_new(bool (*compare)(void *a, void *b),
-                      void (*delete)(void *data));
+struct list *list_new(bool (*compare)(void *, void *), void (*delete)(void *));
 
 struct list_node *list_insert(struct list *self, int pos, void *data);
 struct list_node *list_search(struct list *self, void *data);
