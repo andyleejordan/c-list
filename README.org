@@ -44,3 +44,11 @@ headers). It utilizes my
 [[https://github.com/andschwa/c-unit-test][Simple C Unit Test
 Framework]], and runs on TravisCI. See =test_list.c= for example
 usage.
+
+* Building
+Being a library, compiling an object file is simple.
+#+begin_src sh
+gcc -std=gnu99 -c list.c
+#+end_src
+
+See =.travis.yml= for an example where it is linked to the unit tests.
