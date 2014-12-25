@@ -1,0 +1,46 @@
+#+title: Doubly Linked Circular List C Library
+
+[[https://travis-ci.org/andschwa/c-list][https://travis-ci.org/andschwa/c-list.svg?branch=master]]
+
+This is a generic (=list_node= data is a void pointer) doubly linked
+(nodes have next and previous links) circular (=tail->next= points to
+head and =head->prev= points to tail) list library implemented in
+C. It uses a
+[[https://en.wikipedia.org/wiki/Linked_list#Using_sentinel_nodes][sentinel
+node]] to avoid every edge case one usually encounters when writing a
+linked list.
+
+* Peformance
+It is highly performant, and allows the user to allocate nodes as they
+wish. Since it is doubly linked, both ends can be accessed
+(=list_front= and =list_back=), popped, and pushed in constant
+time. Insertions and deletions are obviously in linear time, but the
+list is smart enough to traverse from the closest end, leading to
+worst case time of =n/2=.
+
+** TODO Benchmarks
+
+* Interface
+The list can be iterated over in a sugary syntactic fashion:
+
+#+begin_src C
+  struct list_node *iter = list_head(some_list);
+  while (!list_end(iter)) {
+          /* do something with iter->data */
+          iter = iter->next;
+  }
+#+end_src
+
+Being doubly linked, this can be done in reverse too. Just use
+=list_tail(some_list)= and =iter = iter->prev=. The list's sentinel
+node marks the end of the list.
+
+Push, pop, peek, insert, search, and delete all follow the naming
+scheme found in the C++ STL.
+
+* Unit Tests
+This library is unit tested (and all functions have comment
+headers). It utilizes my
+[[https://github.com/andschwa/c-unit-test][Simple C Unit Test
+Framework]], and runs on TravisCI. See =test_list.c= for example
+usage.
