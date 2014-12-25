@@ -59,9 +59,7 @@ int main()
 	test_tail_data(list, b);
 
 	testing("push front (B)");
-	test_iter_forward(list);
 	list_push_front(list, list_node_new(b));
-	test_iter_forward(list);
 	test_head_data(list, b);
 
 	testing("not empty");
