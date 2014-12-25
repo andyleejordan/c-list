@@ -1,4 +1,4 @@
-#+title: Doubly Linked Circular List C Library
+#+title: Doubly Linked Circular List in C
 
 [[https://travis-ci.org/andschwa/c-list][https://travis-ci.org/andschwa/c-list.svg?branch=master]]
 
