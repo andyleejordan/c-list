@@ -1,0 +1,9 @@
+language: c
+sudo: false
+compiler:
+  - clang
+  - gcc
+script:
+  - git clone https://github.com/andschwa/c-unit-test.git test
+  - gcc -Wall -Werror -o test_list list.c test_list.c test/test.c
+  - ./test_list
