@@ -12,7 +12,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-bool LIST_DEBUG;
+#ifndef LIST_DEBUG
+#define LIST_DEBUG 0
+#endif
 
 struct list_node
 {
