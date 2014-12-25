@@ -1,16 +1,16 @@
 /*
- * test/list.c - Unit test code for doubly linked list with sentinel.
+ * test_list.c - Unit test code for doubly linked list with sentinel.
  *
  * Copyright (C) 2014 Andrew Schwartzmeyer
  *
  * This file released under the AGPLv3 license.
  */
 
-#include <assert.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "test.h"
+#include "test/test.h"
 #include "list.h"
 
 void test_new(struct list *list);
@@ -41,7 +41,7 @@ int main()
 
 	testing("push back (A)");
 	char *a = strdup("(A)");
-	list_push_back(list, a);
+	list_push_back(list, list_node_new(a));
 
 	testing("head and tail");
 	test_head_data(list, a);
@@ -55,11 +55,13 @@ int main()
 
 	testing("push back (B)");
 	char *b = strdup("(B)");
-	list_push_back(list, b);
+	list_push_back(list, list_node_new(b));
 	test_tail_data(list, b);
 
 	testing("push front (B)");
-	list_push_front(list, b);
+	test_iter_forward(list);
+	list_push_front(list, list_node_new(b));
+	test_iter_forward(list);
 	test_head_data(list, b);
 
 	testing("not empty");
@@ -67,23 +69,23 @@ int main()
 	test_size(list, 3);
 
 	testing("pop back");
-	list_pop_back(list);
+	free(list_pop_back(list));
 	test_tail_data(list, a);
 
 	testing("pop front");
-	list_pop_front(list);
+	free(list_pop_front(list));
 	test_head_data(list, a);
 
 	testing("emptied");
-	list_pop_back(list);
+	free(list_pop_back(list));
 	test_empty(list);
 
 	testing("(A) concat (B) (C)");
 	struct list *list_ = list_new(NULL, &free);
 	char *c = strdup("(C)");
-	list_push_back(list, a);
-	list_push_back(list_, b);
-	list_push_back(list_, c);
+	list_push_back(list, list_node_new(a));
+	list_push_back(list_, list_node_new(b));
+	list_push_back(list_, list_node_new(c));
 	test_size(list, 1);
 	test_size(list_, 2);
 	test_head_data(list, a);
@@ -117,6 +119,9 @@ void test_sentinel(struct list *list)
 
 	if (!sentinel->sentinel)
 		failure("sentinel should be marked as such");
+
+	if (!list_end(sentinel))
+		failure("sentinel should have been list end");
 }
 
 void test_size(struct list *list, size_t size)
@@ -170,13 +175,13 @@ void test_non_empty(struct list *list)
 
 void test_head_data(struct list *list, char *data)
 {
-	if (!compare(list_front(list), data))
+	if (strcmp(list_front(list), data) != 0)
 		failure("head should have been '%s'", data);
 }
 
 void test_tail_data(struct list *list, char *data)
 {
-	if (!compare(list_back(list), data))
+	if (strcmp(list_back(list), data) != 0)
 		failure("tail should have been '%s'", data);
 }
 

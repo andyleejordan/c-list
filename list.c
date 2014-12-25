@@ -28,6 +28,7 @@ struct list *list_new(bool (*compare)(void *a, void *b),
 		return NULL;
 	}
 
+	/* A sentinel is used to elimnate edge cases everywhere else */
 	struct list_node *sentinel = list_node_new(NULL);
 	if (sentinel == NULL) {
 		free(l);
@@ -51,25 +52,25 @@ struct list *list_new(bool (*compare)(void *a, void *b),
 }
 
 /*
- * Inserts data at pos in O(n/2). Returns new node.
+ * Inserts n at pos in O(n/2). Returns n if successful, else NULL.
  *
  * Position 0 inserts at the front and n inserts at the end in O(1).
  */
-struct list_node *list_insert(struct list *self, int pos, void *data)
+struct list_node *list_insert(struct list *self, int pos, struct list_node *n)
 {
-	if (data == NULL) /* ignore empty inserts */
+	if (self == NULL) {
+		list_debug("list_insert(): self was NULL");
 		return NULL;
+	}
 
-	struct list_node *b = list_node_new(data);
-	struct list_node *c = list_index(self, pos);
-
-	list_node_link(self, b, c);
-
-	return b;
+	n = list_node_link(n, list_index(self, pos));
+	if (n)
+		++self->size;
+	return n;
 }
 
 /*
- * Use compare function to return found node, else returns sentinel.
+ * Use compare function to return found node, else NULL.
  */
 struct list_node *list_search(struct list *self, void *data) {
 	struct list_node *iter = list_head(self);
@@ -82,43 +83,51 @@ struct list_node *list_search(struct list *self, void *data) {
 }
 
 /*
- * Unlinks and frees node from list at pos, returns pointer to data.
+ * Unlinks node from list at pos, returns node (to be freed).
  *
  * 0 is front, -1 (or n - 1), both are done in O(1). Else O(n/2).
  */
-void *list_delete(struct list *self, int pos)
+struct list_node *list_delete(struct list *self, int pos)
 {
-	return list_node_unlink(self, list_index(self, pos));
+	if (self == NULL) {
+		list_debug("list_delete(): self was NULL");
+		return NULL;
+	}
+
+	struct list_node *n = list_node_unlink(list_index(self, pos));
+	if (n)
+		--self->size;
+	return n;
 }
 
 /*
- * Pushes data to back of list in O(1). Returns new node.
+ * Pushes n to back of list in O(1).
  */
-struct list_node *list_push_back(struct list *self, void *data)
+struct list_node *list_push_back(struct list *self, struct list_node *n)
 {
-	return list_insert(self, list_size(self), data);
+	return list_insert(self, list_size(self), n);
 }
 
 /*
- * Pushes data to front of list in O(1). Returns new node.
+ * Pushes n to front of list in O(1).
  */
-struct list_node *list_push_front(struct list *self, void *data)
+struct list_node *list_push_front(struct list *self, struct list_node *n)
 {
-	return list_insert(self, 0, data);
+	return list_insert(self, 0, n);
 }
 
 /*
- * Deletes tail node of list in O(1). Returns pointer to data.
+ * Unlinks tail node of list in O(1). Returns node.
  */
-void *list_pop_back(struct list *self)
+struct list_node *list_pop_back(struct list *self)
 {
 	return list_delete(self, -1);
 }
 
 /*
- * Deletes head node of list in O(1). Returns pointer to data.
+ * Unlinks head node of list in O(1). Returns node.
  */
-void *list_pop_front(struct list *self)
+struct list_node *list_pop_front(struct list *self)
 {
 	return list_delete(self, 0);
 }
@@ -145,7 +154,12 @@ void *list_front(struct list *self)
 struct list_node *list_head(struct list *self)
 {
 	if (self == NULL) {
-		list_debug("list_head(): self was null");
+		list_debug("list_head(): self was NULL");
+		return NULL;
+	}
+
+	if (!list_end(self->sentinel)) {
+		list_debug("list_head(): sentinel was malformed");
 		return NULL;
 	}
 
@@ -158,7 +172,12 @@ struct list_node *list_head(struct list *self)
 struct list_node *list_tail(struct list *self)
 {
 	if (self == NULL) {
-		list_debug("list_tail(): self was null");
+		list_debug("list_tail(): self was NULL");
+		return NULL;
+	}
+
+	if (!list_end(self->sentinel)) {
+		list_debug("list_tail(): sentinel was malformed");
 		return NULL;
 	}
 
@@ -199,7 +218,7 @@ struct list_node *list_index(struct list *self, int pos)
 size_t list_size(struct list *self)
 {
 	if (self == NULL) {
-		list_debug("list_size(): self was null");
+		list_debug("list_size(): self was NULL");
 		return 0;
 	}
 
@@ -215,7 +234,7 @@ bool list_empty(struct list *self)
 }
 
 /*
- * Returns true if list_node was the sentiel.
+ * Returns true if n was the sentinel.
  *
  * This is an indication that an iteration has reached the end of the
  * list. *Not* the last data-carrying node of the list.
@@ -223,7 +242,7 @@ bool list_empty(struct list *self)
 bool list_end(struct list_node *n)
 {
 	if (n == NULL) {
-		list_debug("list_end(): n was null");
+		list_debug("list_end(): n was NULL");
 		return false;
 	}
 
@@ -291,9 +310,10 @@ struct list *list_concat(struct list *a, struct list *b)
 void list_free(struct list *self)
 {
 	while (!list_empty(self)) {
-		void *d = list_pop_back(self);
+		struct list_node *n = list_pop_back(self);
 		if (self->delete)
-			self->delete(d);
+			self->delete(n->data);
+		free(n);
 	}
 
 	free(self->sentinel);
@@ -334,40 +354,43 @@ struct list_node *list_node_new(void *data)
  *
  * Node a is found from c, so with b and c as parameters, this
  * prepends (think cons).
+ *
+ * Size is not incremented!
  */
-void list_node_link(struct list *self, struct list_node *b, struct list_node *c)
+struct list_node *list_node_link(struct list_node *b, struct list_node *c)
 {
-	if (self == NULL) {
-		list_debug("list_node_link(): self was null");
-		return;
+	if (b == NULL) {
+		list_debug("list_node_link(): b was NULL");
+		return NULL;
 	}
 
-	++self->size;
+	if (c == NULL) {
+		list_debug("list_node_link(): c was NULL");
+		return NULL;
+	}
+
 	struct list_node *a = c->prev;
 
 	a->next = b;
 	b->prev = a;
 	b->next = c;
 	c->prev = b;
+
+	return b;
 }
 
 /*
  * Given (a b c), unlinks b leaving (a _ c) in O(1).
  *
  * Nodes a and c are found from b. Yay double links.
+ *
+ * Size is not decremented!
  */
-void *list_node_unlink(struct list *self, struct list_node *b)
+struct list_node *list_node_unlink(struct list_node *b)
 {
-	if (self == NULL) {
-		list_debug("list_node_unlink(): self was null");
+	if (list_end(b)) {
 		return NULL;
 	}
-
-	if (list_end(b))
-		return NULL;
-
-	--self->size;
-	void *data = b->data;
 
 	struct list_node *a = b->prev;
 	struct list_node *c = b->next;
@@ -375,9 +398,7 @@ void *list_node_unlink(struct list *self, struct list_node *b)
 	a->next = c;
 	c->prev = a;
 
-	free(b);
-
-	return data;
+	return b;
 }
 
 static void list_debug(const char *format, ...)

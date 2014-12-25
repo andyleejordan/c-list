@@ -34,15 +34,15 @@ struct list
 
 struct list *list_new(bool (*compare)(void *, void *), void (*delete)(void *));
 
-struct list_node *list_insert(struct list *self, int pos, void *data);
+struct list_node *list_insert(struct list *self, int pos, struct list_node *n);
 struct list_node *list_search(struct list *self, void *data);
-void *list_delete(struct list *self, int pos);
+struct list_node *list_delete(struct list *self, int pos);
 
-struct list_node *list_push_back(struct list *self, void *data);
-struct list_node *list_push_front(struct list *self, void *data);
+struct list_node *list_push_back(struct list *self, struct list_node *n);
+struct list_node *list_push_front(struct list *self, struct list_node *n);
 
-void *list_pop_back(struct list *self);
-void *list_pop_front(struct list *self);
+struct list_node *list_pop_back(struct list *self);
+struct list_node *list_pop_front(struct list *self);
 
 void *list_back(struct list *self);
 void *list_front(struct list *self);
@@ -60,7 +60,7 @@ struct list *list_concat(struct list *a, struct list *b);
 void list_free(struct list *self);
 
 struct list_node *list_node_new(void *data);
-void list_node_link(struct list *self, struct list_node *a, struct list_node *b);
-void *list_node_unlink(struct list *self, struct list_node *b);
+struct list_node *list_node_link(struct list_node *a, struct list_node *b);
+struct list_node *list_node_unlink(struct list_node *b);
 
 #endif /* LIST_H */
