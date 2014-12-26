@@ -14,22 +14,23 @@ This library was originally created for use in my
 [[https://github.com/andschwa/uidaho-cs445][120++ Compiler]], and has
 been updated since.
 
-* Peformance
+* Efficiency
 It is highly performant, and allows the user to allocate nodes as they
 wish. Since it is doubly linked, both ends can be accessed
 (=list_front= and =list_back=), popped, and pushed in constant
-time. Insertions and deletions are obviously in linear time, but the
-list is smart enough to traverse from the closest end, leading to
-worst case time of =n/2=.
+time. Insertions and deletions are obviously in linear time due to
+indexing, but the list is smart enough to traverse from the closest
+end, leading to worst case time of =n/2=. If you already have a handle
+to a node, unlinking it from the list is done in constant time.
 
 * Interface
 The list can be iterated over in a sugary syntactic fashion:
 
 #+begin_src C
-  struct list_node *iter = list_head(some_list);
-  while (!list_end(iter)) {
-          /* do something with iter->data */
-          iter = iter->next;
+  struct list_node *n = list_head(some_list);
+  while (!list_end(n)) {
+          /* do something with n->data */
+          n = n->next;
   }
 #+end_src
 

@@ -73,11 +73,11 @@ struct list_node *list_insert(struct list *self, int pos, struct list_node *n)
  * Use compare function to return found node, else NULL.
  */
 struct list_node *list_search(struct list *self, void *data) {
-	struct list_node *iter = list_head(self);
-	while (!list_end(iter)) {
-		if (self->compare(data, iter->data))
-			return iter;
-		iter = iter->next;
+	struct list_node *n = list_head(self);
+	while (!list_end(n)) {
+		if (self->compare(data, n->data))
+			return n;
+		n = n->next;
 	}
 	return NULL;
 }
@@ -191,25 +191,26 @@ struct list_node *list_tail(struct list *self)
  */
 struct list_node *list_index(struct list *self, int pos)
 {
-	int n = list_size(self);
+	int s = list_size(self);
 
 	/* handle negative positions */
 	if (pos < 0)
-		pos += n;
+		pos += s;
 
-	struct list_node *iter = NULL;
+	struct list_node *n = NULL;
 
-	if (pos >= n/2) {
-		iter = list_head(self);
+
+	if (pos <= s/2) {
+		n = list_head(self);
 		for (int i = 0; i < pos; ++i)
-			iter = iter->next;
+			n = n->next;
 	} else {
-		iter = list_tail(self);
-		for (int i = n - 1; i > pos; --i)
-			iter = iter->prev;
+		n = self->sentinel; /* for push_back */
+		for (int i = s; i > pos; --i)
+			n = n->prev;
 	}
 
-	return iter;
+	return n;
 }
 
 /*
