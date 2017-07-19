@@ -29,10 +29,10 @@ struct list
 	struct list_node *sentinel;
 	size_t size;
 	bool (*compare)(void *, void *);
-	void (*delete)(void *);
+	void (*delete_)(void *);
 };
 
-struct list *list_new(bool (*compare)(void *, void *), void (*delete)(void *));
+struct list *list_new(bool (*compare)(void *, void *), void (*delete_)(void *));
 
 struct list_node *list_insert(struct list *self, int pos, struct list_node *n);
 struct list_node *list_search(struct list *self, void *data);

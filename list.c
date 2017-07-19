@@ -20,7 +20,7 @@ static bool list_default_compare(void *a, void *b);
  * Returns allocated list with uncounted sentinel element.
  */
 struct list *list_new(bool (*compare)(void *a, void *b),
-                      void (*delete)(void *data))
+                      void (*delete_)(void *data))
 {
 	struct list *l = malloc(sizeof(*l));
 	if (l == NULL) {
@@ -46,7 +46,7 @@ struct list *list_new(bool (*compare)(void *a, void *b),
 		? &list_default_compare
 		: compare;
 
-	l->delete = delete;
+	l->delete_ = delete_;
 
 	return l;
 }
@@ -283,7 +283,7 @@ struct list *list_concat(struct list *a, struct list *b)
 		return NULL;
 	}
 
-	if (a->delete != b->delete) {
+	if (a->delete_ != b->delete_) {
 		list_debug("list_concat(): delete functions unequal");
 		return NULL;
 	}
@@ -312,8 +312,8 @@ void list_free(struct list *self)
 {
 	while (!list_empty(self)) {
 		struct list_node *n = list_pop_back(self);
-		if (self->delete)
-			self->delete(n->data);
+		if (self->delete_)
+			self->delete_(n->data);
 		free(n);
 	}
 
